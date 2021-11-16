@@ -1,0 +1,55 @@
+version: "3.9"
+services:
+  backend1:
+    build:
+      context: ./backend1
+
+    expose:
+      - "5000"
+
+    networks:
+      public_net:
+        ipv4_address: ${backend_1_IP}
+
+  backend2:
+    build:
+      context: ./backend2
+
+    expose:
+      - "5000"
+
+    networks:
+      public_net:
+        ipv4_address: ${backend_2_IP}
+
+  haproxy:
+          build: ./haproxy
+          volumes:
+            - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+            - ./haproxy/blacklist_agent.lst:/usr/local/etc/haproxy/blacklist_agent.lst:ro
+            - ./haproxy/whitelist_agent.lst:/usr/local/etc/haproxy/whitelist_agent.lst:ro
+
+          ports:
+              - 9090:80 #bind 80 on container to 9090 on host
+
+          networks:
+              public_net:
+                  ipv4_address: ${HA_PROXY_IP}  
+
+          environment:
+              - backend_1_IP=${backend_1_IP}
+              - backend_2_IP=${backend_2_IP}
+              - backend_EXPOSED_PORT=${backend_EXPOSED_PORT} #exposed port is 5000, internal flask port.
+
+          depends_on:
+            - backend1
+            - backend2
+
+networks:
+    public_net:
+        driver: bridge
+        
+        ipam:
+            driver: default
+            config:
+                - subnet: ${NETWORK_SUBNET}
