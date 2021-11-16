@@ -1,5 +1,7 @@
 from flask import Flask
 import socket
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from prometheus_client import make_wsgi_app
 
 app = Flask(__name__)
 
@@ -14,7 +16,7 @@ def default():
 
 @app.route("/metrics")
 def metrics():
-    return f"Metric page for prometheus"
+    return f""
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0",port=5000)

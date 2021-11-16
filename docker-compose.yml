@@ -4,6 +4,8 @@ services:
     build:
       context: ./backend1
 
+    #ports:
+    #  - "5000:5000"
     expose:
       - "5000"
 
@@ -15,6 +17,8 @@ services:
     build:
       context: ./backend2
 
+    #ports:
+    #  - "5000:5000"
     expose:
       - "5000"
 
@@ -44,6 +48,29 @@ services:
           depends_on:
             - backend1
             - backend2
+  
+  prometheus:
+      image: prom/prometheus:v2.1.0
+      container_name: prometheus
+      volumes:
+        - ./prometheus/:/etc/prometheus/
+        #- prometheus/:/prometheus/
+      ports:
+        - 9000:9000
+
+      depends_on:
+        - backend1
+        - backend2
+        - haproxy
+
+      networks:
+          public_net:
+              ipv4_address: ${PROMETHEUS}
+        
+      command: 
+        - '--web.listen-address=:9000'
+        - '--config.file=/etc/prometheus/prometheus.yml'
+
 
 networks:
     public_net:
